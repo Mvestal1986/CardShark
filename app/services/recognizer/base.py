@@ -1,0 +1,1 @@
+# CardRecognizer interface placeholder
