@@ -2,11 +2,14 @@ import hashlib
 import hmac
 import os
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
+import jwt
 from sqlalchemy.orm import Session
 
 from ..models import User
+from ..config import settings
 
 
 class AuthenticationError(Exception):
@@ -51,3 +54,16 @@ class AuthService:
         if user is None or not self._verify_password(password, user.hashed_password):
             raise AuthenticationError("Invalid credentials")
         return user
+
+    def create_access_token(self, *, subject: str | int, expires_delta: Optional[timedelta] = None) -> str:
+        """Create a signed JWT access token."""
+        if expires_delta is None:
+            expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        now = datetime.now(timezone.utc)
+        to_encode = {
+            "sub": str(subject),
+            "iat": int(now.timestamp()),
+            "exp": int((now + expires_delta).timestamp()),
+        }
+        token = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        return token

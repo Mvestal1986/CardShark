@@ -8,6 +8,10 @@ services:
       - ./:/app
     depends_on:
       - db
+    environment:
+      # Explicit for clarity; app has same default
+      DATABASE_URL: postgresql://postgres:postgres@db:5432/tcgscan
+      SECRET_KEY: dev-super-secret
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
   db:
     image: postgres:16
